@@ -1,0 +1,48 @@
+name: Sync Luma -> Neon
+
+on:
+  schedule:
+    # Incremental a cada 15 min -- só guest novo ou com raw mudado.
+    - cron: "*/15 * * * *"
+    # Full 1x por dia, de madrugada (03:00 America/Sao_Paulo = 06:00 UTC,
+    # sem horário de verão no Brasil desde 2019) -- pega reembolso, que só
+    # aparece revarrendo tudo.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      modo:
+        description: "Modo do sync"
+        required: false
+        default: incremental
+        type: choice
+        options:
+          - incremental
+          - full
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -e .
+
+      - name: Rodar sync
+        env:
+          LUMA_API_KEY: ${{ secrets.LUMA_API_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" = "0 6 * * *" ]; then
+            echo "Disparo agendado de madrugada -> --full"
+            python -m sync.run --full
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.modo }}" = "full" ]; then
+            echo "Disparo manual, modo full"
+            python -m sync.run --full
+          else
+            echo "Incremental"
+            python -m sync.run
+          fi

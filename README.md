@@ -80,11 +80,36 @@ painel (a TV). `GET /api/painel` devolve só o JSON.
   console. Comercial confirmado sem card individual.
 
 - Gate 10 concluído fora de ordem (a pedido da Mariana, antes dos Gates 8
-  e 9) — ver seção "Deploy (Render)" abaixo.
+  e 9). **No ar:** https://painel-ingressos-camp-2026.onrender.com —
+  confirmado com curl direto (fora do navegador) em `/healthz` e
+  `/api/painel`, dado real. Repositório na organização GitHub
+  `Londrisoft-Camp`; deploy automático a cada push já confirmado (o
+  segundo commit, com os cards da tela Geral, subiu sozinho).
+- A tela Geral ganhou o que faltava: os cards de CSM e Comercial agora
+  mostram ritmo necessário por dia útil (destaque, calculado no backend),
+  comparação com a meta da semana (meta / realizado / diferença por
+  extenso) e status colorido (verde/amarelo/vermelho — `no_ritmo` /
+  `atencao` / `atrasado`, novos campos em `/api/painel`, nada calculado no
+  front). Sem gráfico, sem lista de nomes nesse card — isso já existe nas
+  outras duas telas.
 
-Sem tela de correção ainda (Gate 8), sem cron automático ainda (Gate 9) —
-o sync continua manual (`python -m sync.run`) até lá. Ver seção 8 do
-documento de projeto.
+Sem tela de correção ainda (Gate 8). Gate 9 (cron automático) em
+andamento — ver abaixo. Até o cron rodar de verdade, o sync continua
+manual (`python -m sync.run`).
+
+## Automação (GitHub Actions — Gate 9)
+
+`.github/workflows/sync.yml` roda `python -m sync.run` a cada 15 minutos
+(incremental) e `--full` 1x por dia de madrugada (03:00 America/Sao_Paulo).
+Também dá pra disparar manualmente pela aba **Actions** do GitHub
+(`workflow_dispatch`, com escolha de modo).
+
+Precisa de dois **GitHub Secrets** no repositório (Settings → Secrets and
+variables → Actions → New repository secret), nunca colados no chat:
+
+- `LUMA_API_KEY`
+- `DATABASE_URL` — a direta, a mesma usada por `scripts/migrate.py`, não a
+  pooled do Render.
 
 ## Deploy (Render)
 

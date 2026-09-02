@@ -618,6 +618,13 @@ manual.
 `sync_run`.
 **Não fazer:** não colocar o sync dentro do processo do FastAPI.
 
+**Execução:** `.github/workflows/sync.yml` criado, com os dois schedules
+(incremental `*/15 * * * *`; full `0 6 * * *` = 03:00 America/Sao_Paulo,
+sem DST) mais `workflow_dispatch` com escolha manual de modo. Distingue os
+dois schedules por `github.event.schedule`, não por hora fixa em duplicado.
+Precisa de dois GitHub Secrets no repositório — `LUMA_API_KEY` e
+`DATABASE_URL` (a direta, não a pooled) — configurados por fora do chat.
+
 ### Gate 10 - Deploy
 
 Executado fora de ordem, antes dos Gates 8 e 9 — a Mariana pediu pra tirar
@@ -634,8 +641,6 @@ de um minuto para acordar. Na prática, a TV ligada mantém o serviço acordado
 sozinha, e o primeiro carregamento da manhã é lento uma vez só. Como o sync
 roda fora do Render, nada é perdido enquanto o serviço dorme.
 
-**Aceite:** URL pública abrindo o painel com dado real da Luma.
-
 **Execução:** `render.yaml` na raiz do repo (Blueprint) define o web
 service — build `pip install -e .`, start
 `uvicorn app.main:app --host 0.0.0.0 --port $PORT`, health check em
@@ -645,7 +650,13 @@ deploy, direto no dashboard, nunca passa por aqui). `LUMA_API_KEY` e a
 `DATABASE_URL` direta não entram no Render: o sync não roda lá, roda no
 GitHub Actions (Gate 9) — o serviço no Render só lê.
 
-**Aceite:** URL pública abrindo o painel com dado real da Luma.
+**Aceite cumprido:** `https://painel-ingressos-camp-2026.onrender.com`
+no ar, `/healthz` e `/api/painel` confirmados (curl direto, fora do
+navegador) com dado real — 5/300 CSM, 1/100 Comercial, 9 sem atribuição,
+`ritmoNecessario`/`diferencaSemana`/`statusSemana` também presentes.
+Repositório na organização GitHub `Londrisoft-Camp`, deploy automático a
+cada push confirmado (segundo commit, com os cards da tela Geral, subiu
+sozinho sem precisar reconfigurar nada no Render).
 
 ## 9. Riscos conhecidos
 
