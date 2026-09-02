@@ -301,6 +301,7 @@ Exemplo real, devolvido pela rota em 02/09/2026:
   "fonte": "Luma",
   "atualizadoEm": "02/09/2026 09:54",
   "semAtribuicao": 9,
+  "diasUteisRestantes": 30,
   "csm": {
     "meta": 300,
     "realizado": 5,
@@ -309,6 +310,9 @@ Exemplo real, devolvido pela rota em 02/09/2026:
     "realizadoSemana": 5,
     "metaAcumulada": [28, 68, 116, 168, 220, 272, 300],
     "realizadoAcumulado": [5, null, null, null, null, null, null],
+    "ritmoNecessario": 10,
+    "diferencaSemana": -23,
+    "statusSemana": "atrasado",
     "gerentes": [
       { "nome": "Lucineia", "meta": 75, "realizado": 3 },
       { "nome": "Gian", "meta": 75, "realizado": 0 },
@@ -323,10 +327,18 @@ Exemplo real, devolvido pela rota em 02/09/2026:
     "metaSemana": 9,
     "realizadoSemana": 1,
     "metaAcumulada": [9, 22, 38, 55, 72, 89, 100],
-    "realizadoAcumulado": [1, null, null, null, null, null, null]
+    "realizadoAcumulado": [1, null, null, null, null, null, null],
+    "ritmoNecessario": 4,
+    "diferencaSemana": -8,
+    "statusSemana": "atrasado"
   }
 }
 ```
+
+`diasUteisRestantes` é um número só, no topo — mesmo raciocínio do
+`semAtribuicao`: a janela da Fase 1 é uma só, não faz sentido duplicar por
+time. `ritmoNecessario`, `diferencaSemana` e `statusSemana` são por time,
+calculados no backend (`app/painel.py`), nunca no front.
 
 `semAtribuicao` é um número só, no topo — não existe por time. Um ingresso
 sem atribuição não tem vendedor, e por isso não tem `time`: não tem como
@@ -521,6 +533,16 @@ continuam com as mesmas 15/17 linhas de antes do teste.
 chave por chave, incluindo `gerentes` só no CSM (Comercial não manda mais
 esse campo — ver seção 7).
 **Não fazer:** nenhum campo financeiro nesta rota.
+
+**Atualização pós-execução (pedido depois do Gate 10):** a tela Geral
+ganhou 3 informações por time — `ritmoNecessario` (ingressos por dia útil
+pra fechar a meta até 15/10), `diferencaSemana` (realizado − meta da
+semana atual) e `statusSemana` (`no_ritmo`/`atencao`/`atrasado`, ok/amber
+acima de 80% da meta semanal, vermelho abaixo). `diasUteisRestantes` (topo
+do payload, não por time — a janela da Fase 1 é uma só) exclui fim de
+semana e os dois feriados que já valiam pra `meta_semanal` (07/09, 12/10).
+Tudo calculado em `app/painel.py`, nada no front — o front só escolhe
+cor/rótulo a partir de `statusSemana`.
 
 **Atualização pós-execução:** `semAtribuicao` saiu do shape original — não
 é mais um campo dentro de `csm`/`comercial`, é um número só no topo do

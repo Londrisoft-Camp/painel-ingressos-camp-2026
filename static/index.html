@@ -18,6 +18,7 @@
     --ciano: #00B3D2;
     --verde: #68FF68;     /* destaque positivo oficial do Camp */
     --amarelo: #F5B833;   /* alerta funcional (não é cor de marca) */
+    --vermelho: #FF5A5A;  /* alerta funcional, terceiro nível (não é cor de marca) */
     --texto: #F4F6FB;
     --texto-sec: #8B95AA;
 
@@ -138,6 +139,7 @@
   .pill .d { width: 11px; height: 11px; border-radius: 50%; }
   .ok { color: var(--verde); } .ok .d { background: var(--verde); box-shadow: 0 0 12px rgba(104,255,104,.6); }
   .at { color: var(--amarelo); } .at .d { background: var(--amarelo); box-shadow: 0 0 12px rgba(245,184,51,.6); }
+  .atr { color: var(--vermelho); } .atr .d { background: var(--vermelho); box-shadow: 0 0 12px rgba(255,90,90,.6); }
   .sub { font-size: 12.5px; color: var(--texto-sec); line-height: 1.45; }
   .sub b { color: var(--texto); }
 
@@ -228,17 +230,11 @@
     <div class="base geral">
       <div class="card">
         <h3>CSM <span>meta agregada, sem quebra por gerente aqui</span></h3>
-        <div class="sub" style="font-size:13px;">
-          Progresso agregado do time de Gerentes de Contas. Ver painel CSM para detalhamento
-          por gerente, cadência semanal e ritmo necessário.
-        </div>
+        <div id="ritmo-geral-csm"></div>
       </div>
       <div class="card">
         <h3>Comercial <span>meta de time, sem quebra individual</span></h3>
-        <div class="sub" style="font-size:13px;">
-          Progresso agregado do time Comercial. Ver painel Comercial para cadência semanal,
-          gráfico de conversão e ritmo necessário.
-        </div>
+        <div id="ritmo-geral-comercial"></div>
       </div>
     </div>
   </div>
@@ -337,8 +333,10 @@
     fonte: "Dado fictício",
     atualizadoEm: null,
     semAtribuicao: 0,
+    diasUteisRestantes: 30,
     csm: {
       meta: 300, realizado: 118, semanaAtual: 1, metaSemana: 105, realizadoSemana: 118,
+      ritmoNecessario: 7, diferencaSemana: 13, statusSemana: "no_ritmo",
       gerentes: [
         { nome: "Gian", meta: 75, realizado: 34 },
         { nome: "Gui", meta: 75, realizado: 29 },
@@ -350,6 +348,7 @@
     },
     comercial: {
       meta: 100, realizado: 53, semanaAtual: 1, metaSemana: 40, realizadoSemana: 53,
+      ritmoNecessario: 2, diferencaSemana: 13, statusSemana: "no_ritmo",
       metaAcumulada: [40, 55, 68, 79, 88, 95, 100],
       realizadoAcumulado: [53, null, null, null, null, null, null]
     }
@@ -437,6 +436,33 @@
       '<b style="color:' + (acima ? "var(--verde)" : "var(--amarelo)") + '">' + diffTexto + '</b></div>';
   }
 
+  // ---- Card "Geral": ritmo necessário + comparação semanal + status.
+  // Três dados só, calculados no backend (ritmoNecessario, diferencaSemana,
+  // statusSemana) -- o front só escolhe cor/rótulo pro status, não recalcula
+  // nada. Sem gráfico, sem lista de nomes -- isso já está nas outras telas. ----
+  var STATUS_INFO = {
+    no_ritmo: { classe: "ok", label: "No ritmo" },
+    atencao: { classe: "at", label: "Atenção" },
+    atrasado: { classe: "atr", label: "Atrasado" }
+  };
+
+  function renderRitmoGeral(elId, time, diasUteisRestantes) {
+    var info = STATUS_INFO[time.statusSemana] || STATUS_INFO.atencao;
+    var diff = time.diferencaSemana;
+    var diffTexto = diff == null ? "" : (diff >= 0 ? "+" + diff + " acima da meta" : Math.abs(diff) + " abaixo da meta");
+    document.getElementById(elId).innerHTML =
+      '<div class="lbl">Ritmo necessário · até 15/10</div>' +
+      '<div class="ritmo-n">' + time.ritmoNecessario +
+        ' <span style="font-size:15px;color:var(--texto-sec);font-weight:600;">/ dia útil</span></div>' +
+      '<div class="sub" style="margin:2px 0 10px;">' + diasUteisRestantes + ' dias úteis restantes até 15/10</div>' +
+      '<div class="mrow" style="margin-top:0;">' +
+        '<span>Meta S' + time.semanaAtual + ': <b>' + time.metaSemana + '</b></span>' +
+        '<span>Realizado: <b>' + time.realizadoSemana + '</b></span>' +
+      '</div>' +
+      '<div class="pill ' + info.classe + '" style="margin-top:9px;"><span class="d"></span>' + info.label +
+        (diffTexto ? ' · ' + diffTexto : '') + '</div>';
+  }
+
   // ---- Progresso individual por gerente (só números, sem status individual) ----
   function renderGerentes(elId, gerentes) {
     var html = gerentes.map(function (g) {
@@ -513,6 +539,8 @@
   function renderDado(dado) {
     renderHero("card-csm-geral", "CSM", dado.csm, false);
     renderHero("card-com-geral", "Comercial", dado.comercial, false);
+    renderRitmoGeral("ritmo-geral-csm", dado.csm, dado.diasUteisRestantes);
+    renderRitmoGeral("ritmo-geral-comercial", dado.comercial, dado.diasUteisRestantes);
 
     renderHero("card-csm-hero", "CSM", dado.csm, true);
     renderCadencia("card-csm-cadencia", dado.csm);

@@ -12,10 +12,17 @@ data de hoje (fuso America/Sao_Paulo), nunca fixada em código.
 `semAtribuicao` é um número só, não por time: um ingresso sem atribuição
 não tem vendedor, e por isso não tem time — não tem como saber se seria do
 CSM ou do Comercial. Fica no topo do payload, não dentro de "csm"/"comercial".
+
+`diasUteisRestantes` (topo do payload, mesmo raciocínio — a janela da
+Fase 1 é uma só, não por time), `ritmoNecessario`, `diferencaSemana` e
+`statusSemana` (por time) são calculados aqui, não no front: dias úteis
+exclui fim de semana e os dois feriados que já entraram no cálculo de
+`meta_semanal` (07/09 e 12/10/2026).
 """
 
 from __future__ import annotations
 
+import math
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -23,6 +30,10 @@ import psycopg
 
 FUSO = ZoneInfo("America/Sao_Paulo")
 TIMES = ("csm", "comercial")
+
+# Feriados dentro da janela da Fase 1 (31/08 a 15/10/2026) — os mesmos dois
+# que já reduziram os dias úteis de S2 e S7 em meta_semanal (migration 004).
+FERIADOS = {date(2026, 9, 7), date(2026, 10, 12)}
 
 
 def _hoje() -> date:
@@ -106,6 +117,37 @@ def _sem_atribuicao(cur: psycopg.Cursor) -> int:
     return cur.fetchone()[0]
 
 
+def _dias_uteis_restantes(hoje: date, fase1_fim: date) -> int:
+    if hoje > fase1_fim:
+        return 0
+    dias = 0
+    d = hoje
+    while d <= fase1_fim:
+        if d.weekday() < 5 and d not in FERIADOS:
+            dias += 1
+        d += timedelta(days=1)
+    return dias
+
+
+def _ritmo_necessario(meta_total: int, realizado: int, dias_uteis_restantes: int) -> int:
+    faltam = max(meta_total - realizado, 0)
+    if dias_uteis_restantes <= 0:
+        return faltam
+    return math.ceil(faltam / dias_uteis_restantes)
+
+
+def _status_semana(realizado_semana: int, meta_semana: int | None) -> str:
+    """Três níveis, não dois: no_ritmo (bateu ou passou a meta da semana),
+    atencao (até 20% abaixo), atrasado (mais de 20% abaixo)."""
+    if not meta_semana:
+        return "no_ritmo"
+    if realizado_semana >= meta_semana:
+        return "no_ritmo"
+    if realizado_semana >= meta_semana * 0.8:
+        return "atencao"
+    return "atrasado"
+
+
 def _atualizado_em(cur: psycopg.Cursor) -> str | None:
     cur.execute("select max(terminado_em) from sync_run where terminado_em is not null")
     momento = cur.fetchone()[0]
@@ -118,6 +160,7 @@ def montar_payload(conn: psycopg.Connection) -> dict:
     with conn.cursor() as cur:
         config = _config(cur)
         fase1_inicio_str = config.get("fase1_inicio")
+        fase1_fim_str = config.get("fase1_fim")
         hoje = _hoje()
 
         if fase1_inicio_str:
@@ -127,15 +170,22 @@ def montar_payload(conn: psycopg.Connection) -> dict:
             fase1_inicio = None
             semana_atual = 1
 
+        if fase1_fim_str:
+            dias_uteis_restantes = _dias_uteis_restantes(hoje, date.fromisoformat(fase1_fim_str))
+        else:
+            dias_uteis_restantes = 0
+
         payload: dict = {
             "fonte": config.get("fonte_label", "Luma"),
             "atualizadoEm": _atualizado_em(cur),
             "semAtribuicao": _sem_atribuicao(cur),
+            "diasUteisRestantes": dias_uteis_restantes,
         }
 
         for time in TIMES:
             meta_acumulada = _meta_acumulada(cur, time)
             realizado = _realizado(cur, time)
+            meta_total = _meta_total(cur, time)
             if fase1_inicio is not None:
                 realizado_acumulado = _realizado_acumulado(cur, time, fase1_inicio, hoje, semana_atual)
             else:
@@ -143,13 +193,16 @@ def montar_payload(conn: psycopg.Connection) -> dict:
             meta_semana = meta_acumulada[semana_atual - 1] if meta_acumulada else None
 
             bloco: dict = {
-                "meta": _meta_total(cur, time),
+                "meta": meta_total,
                 "realizado": realizado,
                 "semanaAtual": semana_atual,
                 "metaSemana": meta_semana,
                 "realizadoSemana": realizado,
                 "metaAcumulada": meta_acumulada,
                 "realizadoAcumulado": realizado_acumulado,
+                "ritmoNecessario": _ritmo_necessario(meta_total, realizado, dias_uteis_restantes),
+                "diferencaSemana": realizado - meta_semana if meta_semana is not None else None,
+                "statusSemana": _status_semana(realizado, meta_semana),
             }
             if time == "csm":
                 bloco["gerentes"] = _gerentes_csm(cur)

@@ -16,19 +16,21 @@ def test_api_painel_shape_e_regras():
 
     body = resp.json()
 
-    assert set(body.keys()) == {"fonte", "atualizadoEm", "semAtribuicao", "csm", "comercial"}
+    assert set(body.keys()) == {
+        "fonte", "atualizadoEm", "semAtribuicao", "diasUteisRestantes", "csm", "comercial",
+    }
     assert isinstance(body["semAtribuicao"], int)
     assert body["semAtribuicao"] >= 0
+    assert isinstance(body["diasUteisRestantes"], int)
+    assert body["diasUteisRestantes"] >= 0
 
-    assert set(body["csm"].keys()) == {
+    campos_time = {
         "meta", "realizado", "semanaAtual", "metaSemana", "realizadoSemana",
-        "metaAcumulada", "realizadoAcumulado", "gerentes",
+        "metaAcumulada", "realizadoAcumulado", "ritmoNecessario", "diferencaSemana", "statusSemana",
     }
+    assert set(body["csm"].keys()) == campos_time | {"gerentes"}
     # Comercial não tem quebra individual -- decisão que reverteu o Gate 7 original.
-    assert set(body["comercial"].keys()) == {
-        "meta", "realizado", "semanaAtual", "metaSemana", "realizadoSemana",
-        "metaAcumulada", "realizadoAcumulado",
-    }
+    assert set(body["comercial"].keys()) == campos_time
     assert "gerentes" not in body["comercial"]
 
     assert len(body["csm"]["gerentes"]) == 4
@@ -39,6 +41,16 @@ def test_api_painel_shape_e_regras():
     assert len(body["csm"]["realizadoAcumulado"]) == 7
     assert 1 <= body["csm"]["semanaAtual"] <= 7
     assert body["csm"]["semanaAtual"] == body["comercial"]["semanaAtual"]
+
+    for time in ("csm", "comercial"):
+        assert body[time]["statusSemana"] in ("no_ritmo", "atencao", "atrasado")
+        assert isinstance(body[time]["ritmoNecessario"], int)
+        assert body[time]["ritmoNecessario"] >= 0
+        # ritmo necessário é sempre o suficiente pra fechar a meta no prazo,
+        # nunca uma fração otimista que deixa gap.
+        faltam = max(body[time]["meta"] - body[time]["realizado"], 0)
+        if body["diasUteisRestantes"] > 0:
+            assert body[time]["ritmoNecessario"] * body["diasUteisRestantes"] >= faltam
 
     # Nenhum valor monetário em lugar nenhum do payload.
     payload_str = str(body)
