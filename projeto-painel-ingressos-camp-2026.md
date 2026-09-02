@@ -618,13 +618,19 @@ status "Atrasado". Azul escuro `#0040B3` sem mudança — segue em fundo/
 detalhe secundário (aba ativa, avatar do gerente, brilho do card
 principal).
 
-**Teste rejeitado:** fundo de card `#535252` (cinza) com borda de 2px
-`#68FF68` — aplicado, testado visualmente nas três telas e revertido. O
-cinza achatou o visual (perde a coesão com o `--bg` quase preto do resto
-da página), e o contraste do verde contra ele caiu bastante (de ~13:1
-contra o fundo escuro original pra ~6:1) — os números verdes perdem o
-brilho/glow que tinham. Contraste do texto branco continua tecnicamente
-ok, mas o conjunto fica pior. Não ficou aplicado.
+**Teste do fundo cinza, parcialmente aceito:** fundo de card `#535252`
+(cinza) com borda de 2px `#68FF68` — aplicado, testado visualmente nas três
+telas com a Mariana olhando ao vivo (`localhost:8123`, servidor local). O
+cinza foi rejeitado (achata o visual, o verde perde ~13:1 → ~6:1 de
+contraste contra ele) mas **a borda verde de 2px ficou** — `.card` mantém
+`background: var(--bg-card)` (o escuro original) com
+`border: 2px solid var(--verde)` no lugar do `1px solid var(--borda)`
+anterior.
+
+**Quarta atualização:** aba ativa (`.tb.on`) também virou verde —
+`background: var(--verde)`. Precisou trocar a cor do texto de `#fff` pra
+`var(--bg)` (escuro) junto, porque texto branco em cima do verde neon tem
+contraste baixo demais pra ler.
 
 **Pendência conhecida:** o espaço entre "Londrisoft" e "camp" no logo
 (`static/assets/logo-camp-horizontal.png`) está desenhado dentro do
