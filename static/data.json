@@ -1,0 +1,28 @@
+{
+  "fonte": "Dado fictício",
+  "atualizadoEm": null,
+  "csm": {
+    "meta": 300,
+    "realizado": 118,
+    "semanaAtual": 1,
+    "metaSemana": 105,
+    "realizadoSemana": 118,
+    "gerentes": [
+      { "nome": "Gian", "meta": 75, "realizado": 34 },
+      { "nome": "Gui", "meta": 75, "realizado": 29 },
+      { "nome": "Pati", "meta": 75, "realizado": 31 },
+      { "nome": "Lu", "meta": 75, "realizado": 24 }
+    ],
+    "metaAcumulada": [105, 150, 190, 225, 255, 280, 300],
+    "realizadoAcumulado": [118, null, null, null, null, null, null]
+  },
+  "comercial": {
+    "meta": 100,
+    "realizado": 53,
+    "semanaAtual": 1,
+    "metaSemana": 40,
+    "realizadoSemana": 53,
+    "metaAcumulada": [40, 55, 68, 79, 88, 95, 100],
+    "realizadoAcumulado": [53, null, null, null, null, null, null]
+  }
+}

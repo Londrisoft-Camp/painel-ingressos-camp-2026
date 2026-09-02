@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Londrisoft Camp 2026 — Painéis Fase 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Paleta oficial Londrisoft Camp (midia_kit_lc) + tons neutros de UI para tema escuro */
+    --bg: #080B12;
+    --bg-card: #151B27;
+    --borda: #232B3A;
+    --azul: #0040B3;      /* azul principal do Camp */
+    --azul-medio: #2E66BF;
+    --ciano: #00B3D2;
+    --verde: #68FF68;     /* destaque positivo oficial do Camp */
+    --amarelo: #F5B833;   /* alerta funcional (não é cor de marca) */
+    --texto: #F4F6FB;
+    --texto-sec: #8B95AA;
+
+    /* Tipografia de marca: Stack Sans Notch para títulos, Inter pro resto.
+       Arquivo .woff/.otf da Stack Sans Notch ainda não disponível — cai no
+       fallback até ser fornecido (ver README). Roca é só usada no logo (imagem). */
+    --font-titulo: 'Stack Sans Notch', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Arial, sans-serif;
+    --font-corpo: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font-corpo);
+    background: var(--bg);
+    color: var(--texto);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h3 { font-family: var(--font-titulo); }
+
+  .tv {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 32px 38px 20px;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .brand { display: flex; align-items: center; gap: 18px; }
+  .brand-logo { height: 38px; width: auto; display: block; flex-shrink: 0; }
+  .brand-txt {
+    padding-left: 18px;
+    border-left: 1px solid var(--borda);
+  }
+  .brand-txt .eb {
+    font-size: 11.5px; font-weight: 600; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ciano);
+  }
+  .brand-txt h1 { font-size: 22px; font-weight: 700; margin-top: 2px; }
+
+  .hdr-rt { display: flex; align-items: center; gap: 26px; }
+
+  .tabs {
+    display: flex; gap: 8px; background: #0E1420;
+    padding: 5px; border-radius: 11px; border: 1px solid var(--borda);
+  }
+  .tb {
+    background: none; border: none; color: var(--texto-sec);
+    font-family: inherit; font-size: 13px; font-weight: 700;
+    padding: 8px 16px; border-radius: 8px; white-space: nowrap;
+    cursor: pointer;
+  }
+  .tb.on { background: var(--azul); color: #fff; }
+
+  .clock-b { text-align: right; }
+  .clock { font-size: 25px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+  .date { font-size: 12px; color: var(--texto-sec); font-weight: 500; margin-top: 3px; }
+  .live {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--verde); display: inline-block;
+    animation: bl 2s infinite; margin-right: 5px;
+  }
+  @keyframes bl { 0%, 100% { opacity: 1 } 50% { opacity: .3 } }
+
+  .pane { display: none; flex: 1; flex-direction: column; min-height: 0; }
+  .pane.on { display: flex; }
+
+  .card {
+    background: var(--bg-card); border: 1px solid var(--borda);
+    border-radius: 14px; padding: 18px 22px;
+  }
+  .lbl {
+    font-size: 11.5px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .09em; color: var(--texto-sec); margin-bottom: 7px;
+  }
+  .card h3 {
+    font-size: 12.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--texto-sec);
+    margin-bottom: 13px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .card h3 span { font-size: 10.5px; font-weight: 500; opacity: .65; text-transform: none; letter-spacing: 0; }
+
+  /* HERO */
+  .hero { display: grid; gap: 15px; margin-bottom: 15px; }
+  .hero.hero3 { grid-template-columns: 1.6fr 1fr 1fr; }
+  .hero.hero2 { grid-template-columns: 1fr 1fr; }
+
+  .card.main {
+    background: linear-gradient(135deg, #0E1420, #0A1830);
+    position: relative; overflow: hidden;
+  }
+  .card.main::after {
+    content: ""; position: absolute; right: -50px; top: -50px;
+    width: 190px; height: 190px;
+    background: radial-gradient(circle, rgba(0,64,179,.28), transparent 70%);
+  }
+  .big { display: flex; align-items: baseline; gap: 12px; position: relative; }
+  .big .n { font-size: 56px; font-weight: 800; line-height: 1; letter-spacing: -.02em; }
+  .big .t { font-size: 21px; font-weight: 600; color: var(--texto-sec); }
+  .bar { height: 11px; background: #1A2130; border-radius: 6px; overflow: hidden; margin-top: 12px; }
+  .bar i { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--azul-medio), var(--azul)); }
+  .mrow {
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;
+    margin-top: 8px; font-size: 13px; color: var(--texto-sec); font-weight: 500;
+  }
+  .mrow b { color: var(--texto); font-weight: 700; }
+
+  .pill { display: inline-flex; align-items: center; gap: 9px; font-size: 18px; font-weight: 700; margin: 1px 0 5px; }
+  .pill .d { width: 11px; height: 11px; border-radius: 50%; }
+  .ok { color: var(--verde); } .ok .d { background: var(--verde); box-shadow: 0 0 12px rgba(104,255,104,.6); }
+  .at { color: var(--amarelo); } .at .d { background: var(--amarelo); box-shadow: 0 0 12px rgba(245,184,51,.6); }
+  .sub { font-size: 12.5px; color: var(--texto-sec); line-height: 1.45; }
+  .sub b { color: var(--texto); }
+
+  .cd { display: flex; gap: 18px; margin-top: 4px; }
+  .cd div { flex: 1; text-align: center; }
+  .cd .n { font-size: 27px; font-weight: 800; line-height: 1; }
+  .cd .l { font-size: 10px; color: var(--texto-sec); text-transform: uppercase; letter-spacing: .05em; margin-top: 4px; line-height: 1.3; }
+
+  /* BASE */
+  .base { flex: 1; display: grid; gap: 15px; min-height: 0; }
+  .base.csm { grid-template-columns: 1.5fr 1fr 1fr; }
+  .base.com { grid-template-columns: 1.6fr 1fr; }
+  .base.geral { grid-template-columns: 1fr 1fr; }
+
+  /* GRÁFICO DE CONVERSÃO */
+  .chart { display: flex; align-items: flex-end; gap: 10px; flex: 1; min-height: 180px; padding-bottom: 2px; }
+  .col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+  .cols { display: flex; align-items: flex-end; gap: 3px; width: 100%; height: 100%; justify-content: center; }
+  .cb { width: 40%; border-radius: 4px 4px 0 0; position: relative; }
+  .cb.meta { background: #2A3448; }
+  .cb.real.up { background: linear-gradient(180deg, #7CFF7C, var(--verde)); }
+  .cb.real.dn { background: linear-gradient(180deg, #F5B833, #C98A0A); }
+  .cb .v { position: absolute; top: -17px; left: 50%; transform: translateX(-50%); font-size: 10.5px; font-weight: 700; white-space: nowrap; }
+  .col .sm { font-size: 11px; font-weight: 700; color: var(--texto-sec); margin-top: 7px; }
+  .chart-lg { display: flex; gap: 16px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--borda); }
+  .chart-lg .i { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--texto-sec); font-weight: 600; }
+  .chart-lg .s { width: 11px; height: 11px; border-radius: 3px; }
+
+  /* GERENTES */
+  .g-row { display: flex; align-items: center; gap: 11px; margin-bottom: 13px; }
+  .g-row:last-child { margin-bottom: 0; }
+  .g-av {
+    width: 31px; height: 31px; border-radius: 50%; background: var(--azul);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+  }
+  .g-nm { width: 44px; font-size: 12.5px; font-weight: 600; flex-shrink: 0; }
+  .g-tr { flex: 1; height: 9px; background: #1A2130; border-radius: 5px; overflow: hidden; }
+  .g-tr i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--azul-medio), var(--ciano)); }
+  .g-vl { width: 54px; text-align: right; font-size: 12.5px; font-weight: 700; flex-shrink: 0; }
+
+  /* RITMO */
+  .ritmo-n { font-size: 32px; font-weight: 800; line-height: 1; margin: 6px 0 8px; color: var(--ciano); }
+
+  .foot { display: flex; justify-content: space-between; margin-top: 11px; font-size: 11px; color: var(--texto-sec); opacity: .7; }
+</style>
+</head>
+<body>
+
+<div class="tv">
+
+  <header>
+    <div class="brand">
+      <img src="assets/logo-camp-horizontal.png" alt="Londrisoft Camp" class="brand-logo">
+      <div class="brand-txt">
+        <div class="eb">2026 · Fase 1</div>
+        <h1 id="pane-title">Painel Geral</h1>
+      </div>
+    </div>
+
+    <div class="hdr-rt">
+      <div class="tabs" id="tabs">
+        <div class="tb on" id="t-geral">Geral</div>
+        <div class="tb" id="t-csm">CSM · 300</div>
+        <div class="tb" id="t-comercial">Comercial · 100</div>
+      </div>
+      <div class="clock-b">
+        <div class="clock" id="ck">--:--:--</div>
+        <div class="date" id="dt"><span class="live"></span>carregando…</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= PAINEL 1 — GERAL ================= -->
+  <div class="pane on" id="pane-geral">
+    <div class="hero hero3">
+      <div class="card">
+        <div class="lbl">Contagem regressiva</div>
+        <div class="cd">
+          <div><div class="n" id="c1-geral">–</div><div class="l">dias p/ fechar<br>Fase 1 (15/10)</div></div>
+          <div><div class="n" id="c2-geral">–</div><div class="l">dias p/<br>o evento (11/11)</div></div>
+        </div>
+      </div>
+      <div class="card main" id="card-csm-geral" style="grid-column: span 1;"></div>
+      <div class="card main" id="card-com-geral"></div>
+    </div>
+
+    <div class="base geral">
+      <div class="card">
+        <h3>CSM <span>meta agregada, sem quebra por gerente aqui</span></h3>
+        <div class="sub" style="font-size:13px;">
+          Progresso agregado do time de Gerentes de Contas. Ver painel CSM para detalhamento
+          por gerente, cadência semanal e ritmo necessário.
+        </div>
+      </div>
+      <div class="card">
+        <h3>Comercial <span>meta de time, sem quebra individual</span></h3>
+        <div class="sub" style="font-size:13px;">
+          Progresso agregado do time Comercial. Ver painel Comercial para cadência semanal,
+          gráfico de conversão e ritmo necessário.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= PAINEL 2 — CSM ================= -->
+  <div class="pane" id="pane-csm">
+    <div class="hero hero3">
+      <div class="card main" id="card-csm-hero"></div>
+      <div class="card" id="card-csm-cadencia"></div>
+
+      <div class="card">
+        <div class="lbl">Contagem regressiva</div>
+        <div class="cd">
+          <div><div class="n" id="c1-csm">–</div><div class="l">dias p/ fechar<br>Fase 1 (15/10)</div></div>
+          <div><div class="n" id="c2-csm">–</div><div class="l">dias p/<br>o evento (11/11)</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="base csm">
+      <div class="card" style="display:flex; flex-direction:column;">
+        <h3>Conversão acumulada <span>realizado × meta</span></h3>
+        <div class="chart" id="chart-csm"></div>
+        <div class="chart-lg">
+          <div class="i"><span class="s" style="background:#2A3448"></span>Meta acumulada</div>
+          <div class="i"><span class="s" style="background:var(--verde)"></span>Realizado acima da linha</div>
+          <div class="i"><span class="s" style="background:var(--amarelo)"></span>Realizado abaixo da linha</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Por gerente <span>meta 75 cada</span></h3>
+        <div id="gerentes-csm"></div>
+      </div>
+
+      <div class="card">
+        <h3>Ritmo necessário <span>até 15/10</span></h3>
+        <div class="ritmo-n" id="ritmo-csm">--</div>
+        <div class="sub" id="ritmo-csm-sub">ingressos por semana</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= PAINEL 3 — COMERCIAL ================= -->
+  <div class="pane" id="pane-comercial">
+    <div class="hero hero3">
+      <div class="card main" id="card-com-hero"></div>
+      <div class="card" id="card-com-cadencia"></div>
+
+      <div class="card">
+        <div class="lbl">Contagem regressiva</div>
+        <div class="cd">
+          <div><div class="n" id="c1-comercial">–</div><div class="l">dias p/ fechar<br>Fase 1 (15/10)</div></div>
+          <div><div class="n" id="c2-comercial">–</div><div class="l">dias p/<br>o evento (11/11)</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="base com">
+      <div class="card" style="display:flex; flex-direction:column;">
+        <h3>Conversão acumulada <span>realizado × meta · resultado do time</span></h3>
+        <div class="chart" id="chart-comercial"></div>
+        <div class="chart-lg">
+          <div class="i"><span class="s" style="background:#2A3448"></span>Meta acumulada</div>
+          <div class="i"><span class="s" style="background:var(--verde)"></span>Realizado acima da linha</div>
+          <div class="i"><span class="s" style="background:var(--amarelo)"></span>Realizado abaixo da linha</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Ritmo necessário <span>até 15/10</span></h3>
+        <div class="ritmo-n" id="ritmo-comercial">--</div>
+        <div class="sub" id="ritmo-comercial-sub">ingressos por semana</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>
+      <span id="fonte">Dado fictício · Fase 1 · Londrisoft Camp 2026</span>
+      <span id="sematr" hidden style="margin-left:10px;color:var(--amarelo)"></span>
+    </span>
+    <span id="up">Dado atualizado em: —</span>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- Dado: busca /api/painel. Se o fetch falhar (rota fora do ar, ou
+  // abrindo o index.html direto por duplo clique, sem servidor local),
+  // usa este fallback com os mesmos valores fictícios. ----
+  var DADO_PADRAO = {
+    fonte: "Dado fictício",
+    atualizadoEm: null,
+    semAtribuicao: 0,
+    csm: {
+      meta: 300, realizado: 118, semanaAtual: 1, metaSemana: 105, realizadoSemana: 118,
+      gerentes: [
+        { nome: "Gian", meta: 75, realizado: 34 },
+        { nome: "Gui", meta: 75, realizado: 29 },
+        { nome: "Pati", meta: 75, realizado: 31 },
+        { nome: "Lu", meta: 75, realizado: 24 }
+      ],
+      metaAcumulada: [105, 150, 190, 225, 255, 280, 300],
+      realizadoAcumulado: [118, null, null, null, null, null, null]
+    },
+    comercial: {
+      meta: 100, realizado: 53, semanaAtual: 1, metaSemana: 40, realizadoSemana: 53,
+      metaAcumulada: [40, 55, 68, 79, 88, 95, 100],
+      realizadoAcumulado: [53, null, null, null, null, null, null]
+    }
+  };
+
+  // ---- Datas alvo (fixas) ----
+  var FASE1_FIM = new Date(2026, 9, 15);   // 15/10/2026 (mês 0-indexado)
+  var EVENTO = new Date(2026, 10, 11);      // 11/11/2026
+
+  function diasRestantes(alvo) {
+    var hoje = new Date();
+    var hojeSemHora = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    var msPorDia = 1000 * 60 * 60 * 24;
+    return Math.ceil((alvo - hojeSemHora) / msPorDia);
+  }
+
+  function pad(n) { return n.toString().padStart(2, "0"); }
+
+  function atualizarContadores() {
+    var dFase1 = diasRestantes(FASE1_FIM);
+    var dEvento = diasRestantes(EVENTO);
+
+    ["geral", "csm", "comercial"].forEach(function (pane) {
+      var elFase1 = document.getElementById("c1-" + pane);
+      var elEvento = document.getElementById("c2-" + pane);
+      if (elFase1) elFase1.textContent = dFase1;
+      if (elEvento) elEvento.textContent = dEvento;
+    });
+
+    return dFase1;
+  }
+
+  function atualizarRelogio() {
+    var n = new Date();
+    var ds = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+    var ms = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+    document.getElementById("ck").textContent = pad(n.getHours()) + ":" + pad(n.getMinutes()) + ":" + pad(n.getSeconds());
+    document.getElementById("dt").innerHTML = '<span class="live"></span>' + ds[n.getDay()] + ", " + n.getDate() + " de " + ms[n.getMonth()] + " de " + n.getFullYear();
+  }
+
+  function calcularRitmo(dFase1RestantesEmDias, meta, realizado) {
+    var restantes = Math.max(meta - realizado, 0);
+    var semanasRestantes = Math.max(Math.ceil(dFase1RestantesEmDias / 7), 1);
+    if (dFase1RestantesEmDias <= 0) {
+      return { valor: restantes, semanas: 0 };
+    }
+    return { valor: Math.ceil(restantes / semanasRestantes), semanas: semanasRestantes };
+  }
+
+  function atualizarRitmo(dFase1, dado) {
+    var csm = calcularRitmo(dFase1, dado.csm.meta, dado.csm.realizado);
+    document.getElementById("ritmo-csm").textContent = csm.valor + " / semana";
+    document.getElementById("ritmo-csm-sub").textContent =
+      (dado.csm.meta - dado.csm.realizado) + " restantes ÷ " + csm.semanas + " semanas até 15/10/2026";
+
+    var comercial = calcularRitmo(dFase1, dado.comercial.meta, dado.comercial.realizado);
+    document.getElementById("ritmo-comercial").textContent = comercial.valor + " / semana";
+    document.getElementById("ritmo-comercial-sub").textContent =
+      (dado.comercial.meta - dado.comercial.realizado) + " restantes ÷ " + comercial.semanas + " semanas até 15/10/2026";
+  }
+
+  // ---- Cards de progresso (hero) ----
+  function renderHero(elId, label, time, comMetaSemana) {
+    var pct = Math.round((time.realizado / time.meta) * 100);
+    var faltam = Math.max(time.meta - time.realizado, 0);
+    var extra = (comMetaSemana && time.metaSemana != null)
+      ? '<span>meta S' + time.semanaAtual + ': <b>' + time.metaSemana + '</b></span>'
+      : '';
+    document.getElementById(elId).innerHTML =
+      '<div class="lbl">' + label + ' · meta ' + time.meta + ' até 15/10</div>' +
+      '<div class="big"><span class="n">' + time.realizado + '</span><span class="t">/ ' + time.meta + '</span></div>' +
+      '<div class="bar"><i style="width:' + pct + '%"></i></div>' +
+      '<div class="mrow"><span><b>' + pct + '%</b> convertido</span><span>faltam <b>' + faltam + '</b></span>' + extra + '</div>';
+  }
+
+  // ---- Card de cadência semanal (status geral do time, não por pessoa) ----
+  function renderCadencia(elId, time) {
+    var diff = time.realizadoSemana - time.metaSemana;
+    var acima = diff >= 0;
+    var diffTexto = (acima ? "+" : "") + diff + " " + (acima ? "acima" : "abaixo") + " da linha";
+    document.getElementById(elId).innerHTML =
+      '<div class="lbl">Cadência · Semana ' + time.semanaAtual + '</div>' +
+      '<div class="pill ' + (acima ? "ok" : "at") + '"><span class="d"></span>' + (acima ? "Acima da linha" : "Atenção") + '</div>' +
+      '<div class="sub">Realizado <b>' + time.realizadoSemana + '</b> vs meta <b>' + time.metaSemana + '</b><br>' +
+      '<b style="color:' + (acima ? "var(--verde)" : "var(--amarelo)") + '">' + diffTexto + '</b></div>';
+  }
+
+  // ---- Progresso individual por gerente (só números, sem status individual) ----
+  function renderGerentes(elId, gerentes) {
+    var html = gerentes.map(function (g) {
+      var pct = Math.min((g.realizado / g.meta) * 100, 100);
+      return '<div class="g-row"><div class="g-av">' + g.nome.charAt(0) + '</div>' +
+        '<div class="g-nm">' + g.nome + '</div>' +
+        '<div class="g-tr"><i style="width:' + pct + '%"></i></div>' +
+        '<div class="g-vl">' + g.realizado + '/' + g.meta + '</div></div>';
+    }).join("");
+    document.getElementById(elId).innerHTML = html;
+  }
+
+  // ---- Gráfico de conversão acumulada (S1 a S7) ----
+  function renderChart(containerId, time) {
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = "";
+
+    var metaTotal = time.meta;
+    time.metaAcumulada.forEach(function (metaVal, i) {
+      var realVal = time.realizadoAcumulado[i];
+
+      var col = document.createElement("div");
+      col.className = "col";
+
+      var cols = document.createElement("div");
+      cols.className = "cols";
+
+      var metaBar = document.createElement("div");
+      metaBar.className = "cb meta";
+      metaBar.style.height = Math.max((metaVal / metaTotal) * 100, 2) + "%";
+      metaBar.title = "Meta acumulada S" + (i + 1) + ": " + metaVal;
+      cols.appendChild(metaBar);
+
+      if (realVal !== null) {
+        var acima = realVal >= metaVal;
+        var realBar = document.createElement("div");
+        realBar.className = "cb real " + (acima ? "up" : "dn");
+        realBar.style.height = Math.max((realVal / metaTotal) * 100, 2) + "%";
+        var v = document.createElement("span");
+        v.className = "v";
+        v.textContent = realVal;
+        realBar.appendChild(v);
+        realBar.title = "Realizado S" + (i + 1) + ": " + realVal;
+        cols.appendChild(realBar);
+      }
+
+      col.appendChild(cols);
+
+      var label = document.createElement("div");
+      label.className = "sm";
+      label.textContent = "S" + (i + 1);
+      col.appendChild(label);
+
+      container.appendChild(col);
+    });
+  }
+
+  function renderFonte(dado) {
+    document.getElementById("fonte").textContent = dado.fonte + " · Fase 1 · Londrisoft Camp 2026";
+    document.getElementById("up").textContent = "Dado atualizado em: " + (dado.atualizadoEm || "—");
+
+    // Visível mas discreto (rodapé, cor de alerta funcional) — some da tela
+    // se não tiver nenhum ingresso sem atribuição.
+    var elSemAtr = document.getElementById("sematr");
+    if (dado.semAtribuicao) {
+      elSemAtr.textContent = dado.semAtribuicao + " sem atribuição";
+      elSemAtr.hidden = false;
+    } else {
+      elSemAtr.hidden = true;
+    }
+  }
+
+  function renderDado(dado) {
+    renderHero("card-csm-geral", "CSM", dado.csm, false);
+    renderHero("card-com-geral", "Comercial", dado.comercial, false);
+
+    renderHero("card-csm-hero", "CSM", dado.csm, true);
+    renderCadencia("card-csm-cadencia", dado.csm);
+    renderGerentes("gerentes-csm", dado.csm.gerentes);
+    renderChart("chart-csm", dado.csm);
+
+    renderHero("card-com-hero", "Comercial", dado.comercial, true);
+    renderCadencia("card-com-cadencia", dado.comercial);
+    renderChart("chart-comercial", dado.comercial);
+
+    renderFonte(dado);
+  }
+
+  // ---- Rotação automática dos painéis ----
+  var PANES = [
+    { id: "pane-geral", tab: "t-geral", titulo: "Painel Geral" },
+    { id: "pane-csm", tab: "t-csm", titulo: "CSM" },
+    { id: "pane-comercial", tab: "t-comercial", titulo: "Comercial" }
+  ];
+  var INTERVALO = 120000; // 2 minutos
+  var indiceAtual = 0;
+  var timerRotacao = null;
+
+  function mostrarPane(indice) {
+    indiceAtual = indice;
+    PANES.forEach(function (p, i) {
+      var el = document.getElementById(p.id);
+      var tab = document.getElementById(p.tab);
+      if (el) el.classList.toggle("on", i === indice);
+      if (tab) tab.classList.toggle("on", i === indice);
+    });
+    document.getElementById("pane-title").textContent = PANES[indice].titulo;
+  }
+
+  // Rotação automática — sempre roda sozinha (critério de aceite). Clicar numa
+  // aba só adianta a visualização; a troca automática continua acontecendo,
+  // recomeçando a contagem de 2 minutos a partir do clique.
+  function reiniciarRotacao() {
+    if (timerRotacao) clearInterval(timerRotacao);
+    timerRotacao = setInterval(function () {
+      mostrarPane((indiceAtual + 1) % PANES.length);
+    }, INTERVALO);
+  }
+
+  PANES.forEach(function (p, i) {
+    var tab = document.getElementById(p.tab);
+    if (!tab) return;
+    tab.addEventListener("click", function () {
+      mostrarPane(i);
+      reiniciarRotacao();
+    });
+  });
+
+  function init(dado) {
+    renderDado(dado);
+
+    var dFase1 = atualizarContadores();
+    atualizarRelogio();
+    atualizarRitmo(dFase1, dado);
+    mostrarPane(indiceAtual);
+
+    setInterval(function () {
+      var d = atualizarContadores();
+      atualizarRitmo(d, dado);
+    }, 60 * 1000);
+
+    setInterval(atualizarRelogio, 1000);
+
+    // Recarrega o payload a cada 5 minutos, sem recarregar a página. Se a
+    // rota falhar nesse recarregamento, mantém o dado que já está na tela
+    // (não troca pro fallback fictício por causa de uma falha passageira).
+    setInterval(function () {
+      fetch("/api/painel")
+        .then(function (r) { if (!r.ok) throw new Error("/api/painel indisponível"); return r.json(); })
+        .then(function (novoDado) {
+          dado = novoDado;
+          renderDado(dado);
+        })
+        .catch(function () {});
+    }, 5 * 60 * 1000);
+
+    reiniciarRotacao();
+  }
+
+  fetch("/api/painel")
+    .then(function (r) { if (!r.ok) throw new Error("/api/painel indisponível"); return r.json(); })
+    .then(init)
+    .catch(function () { init(DADO_PADRAO); });
+})();
+</script>
+
+</body>
+</html>
