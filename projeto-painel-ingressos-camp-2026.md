@@ -604,6 +604,34 @@ mantém o último dado real na tela. Testado ao vivo: as três telas
 (screenshot de cada uma), zero erro de console, servidor rodando contra o
 Neon e a Luma reais.
 
+**Terceira atualização — ajustes visuais:** card "Contagem regressiva" da
+tela Geral centralizado verticalmente (`display:flex; justify-content:center`
+só nesse card — a altura já batia com os vizinhos por causa do
+`display:grid` do `.hero`, que estica todo mundo pra mesma altura; não
+tinha "altura sobrando" pra cortar, só conteúdo mal posicionado dentro
+dela). Verde (`--verde`, `#68FF68`) virou a cor de destaque principal nas
+três telas — números grandes de realizado, barras de progresso, badge
+"2026 · Fase 1" e números de "ritmo necessário" — no lugar do azul médio
+`#2E66BF` e do ciano `#00B3D2`, que ficaram sem uso (continuam definidos em
+`:root`, fazem parte da paleta oficial). Vermelho continua exclusivo do
+status "Atrasado". Azul escuro `#0040B3` sem mudança — segue em fundo/
+detalhe secundário (aba ativa, avatar do gerente, brilho do card
+principal).
+
+**Teste rejeitado:** fundo de card `#535252` (cinza) com borda de 2px
+`#68FF68` — aplicado, testado visualmente nas três telas e revertido. O
+cinza achatou o visual (perde a coesão com o `--bg` quase preto do resto
+da página), e o contraste do verde contra ele caiu bastante (de ~13:1
+contra o fundo escuro original pra ~6:1) — os números verdes perdem o
+brilho/glow que tinham. Contraste do texto branco continua tecnicamente
+ok, mas o conjunto fica pior. Não ficou aplicado.
+
+**Pendência conhecida:** o espaço entre "Londrisoft" e "camp" no logo
+(`static/assets/logo-camp-horizontal.png`) está desenhado dentro do
+próprio PNG — é uma imagem só, não dois elementos de HTML/CSS. Não dá pra
+corrigir por código; precisa de um arquivo novo, regerado com o espaçamento
+certo, de quem tem a arte fonte.
+
 ### Gate 8 - Tela de correção
 
 `/admin` protegida por HTTP Basic, com um bloco só:
