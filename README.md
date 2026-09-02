@@ -77,7 +77,7 @@ painel (a TV). `GET /api/painel` devolve só o JSON.
   volta pro dado fictício. `semAtribuicao` aparece no rodapé (cor de
   alerta, some se for zero). Testado ao vivo num browser de verdade
   (Playwright headless): as três telas com dado real, zero erro de
-  console. Comercial confirmado sem card individual.
+  console.
 
 - Gate 10 concluído fora de ordem (a pedido da Mariana, antes dos Gates 8
   e 9). **No ar:** https://painel-ingressos-camp-2026.onrender.com —
@@ -93,9 +93,21 @@ painel (a TV). `GET /api/painel` devolve só o JSON.
   front). Sem gráfico, sem lista de nomes nesse card — isso já existe nas
   outras duas telas.
 
-Sem tela de correção ainda (Gate 8). Gate 9 (cron automático) em
-andamento — ver abaixo. Até o cron rodar de verdade, o sync continua
-manual (`python -m sync.run`).
+- Gate 9 concluído: `.github/workflows/sync.yml` no ar, testado com
+  `workflow_dispatch` disparado de verdade — rodou em ~15s, sem erro,
+  gravou linha nova em `sync_run`, e o painel mudou de fato (Comercial
+  1→2) porque tinha entrado um ingresso novo real desde a última
+  sincronização manual.
+- Comercial ganhou de volta a quebra individual — reversão de novo da
+  reversão anterior. Metas diferentes por pessoa (Raul 10, os outros 30),
+  cada linha do card "Por vendedor" mostra a própria meta. Novo:
+  `topVendedores` na rota — ranking único CSM + Comercial, top 3 por
+  realizado, empate desempatado por % da própria meta. A tela Geral ganhou
+  duas curvas (reaproveitando o mesmo gráfico de conversão das outras
+  telas) e o card do top 3, embaixo dos cards de ritmo — testado
+  visualmente, os dois cabem sem apertar.
+
+Sem tela de correção ainda (Gate 8).
 
 ## Automação (GitHub Actions — Gate 9)
 

@@ -14,20 +14,19 @@ Dois times competem em metas separadas, meta consolidada do painel é
 | Time | Meta total | Distribuição | Quebra individual na TV? |
 |---|---|---|---|
 | CSM | 300 | 4 gerentes de conta, 75 cada (Lucineia, Gian, Pati, Gui) | Sim |
-| Comercial | 100 | 3 vendedores com 30 cada (Clayton, Antonio, Adriano), mais 10 do gerente (Raul) | Não — meta coletiva só |
+| Comercial | 100 | Raul 10, Clayton/Antonio/Adriano 30 cada | Sim |
 
 O Marketing tem 100 ingressos próprios, mas fica **fora do painel por
 enquanto**. A tela Geral mostra 400 como total consolidado, sem nenhuma
 referência ao 500 (400 + Marketing).
 
-Só o CSM mantém quebra individual por gerente no card "Por gerente" — é o
-desenho original que já existia no front. O Comercial é meta coletiva na
-TV, sem card individual (decisão revertida em relação a uma versão anterior
-deste documento, que pedia o mesmo card pro Comercial — não pedir mais).
-Isso não significa que a venda de cada vendedor do Comercial deixa de ser
-rastreada: os 4 utm_source continuam sendo atribuídos normalmente por
-baixo dos panos, só não aparecem quebrados na TV — ficam visíveis na tela
-de admin.
+Os dois times mostram quebra individual no card "Por gerente"/"Por
+vendedor" — decisão que oscilou duas vezes neste documento (tirada depois
+de posta, posta de novo depois de tirada) até fechar assim: **os dois times
+têm quebra individual**. A diferença do Comercial pro CSM é que as metas
+não são iguais entre as pessoas (Raul 10, os outros 30), então cada linha
+mostra a própria meta — não dá pra usar um rótulo fixo tipo "meta X cada"
+como no CSM.
 
 **Maria não é vendedora.** Não tem meta, não entra em `vendedor`, e
 qualquer venda que por acaso apontar pra ela (utm_source ou cupom) deve
@@ -544,6 +543,18 @@ semana e os dois feriados que já valiam pra `meta_semanal` (07/09, 12/10).
 Tudo calculado em `app/painel.py`, nada no front — o front só escolhe
 cor/rótulo a partir de `statusSemana`.
 
+**Segunda atualização (pedido depois do Gate 9):** `gerentes` voltou a
+existir no Comercial — reversão de novo da reversão da seção 1. Metas
+diferentes por pessoa dentro do time (Raul 10, os outros 30 cada), então
+cada linha carrega a própria meta; o rótulo do card virou "meta varia por
+pessoa" em vez de "meta X cada". `topVendedores` é novo: ranking único
+juntando os dois times, top 3 por `realizado`, empate desempatado por %
+da própria meta (`realizado/meta`) — calculado em SQL puro Python, não no
+front. A tela Geral ganhou, embaixo dos dois cards de ritmo: duas curvas
+(reaproveitando `renderChart`, o mesmo componente das telas CSM/Comercial,
+sem novo gráfico) e o card do top 3. Testado visualmente — os dois cabem
+sem apertar, não precisou priorizar nenhum.
+
 **Atualização pós-execução:** `semAtribuicao` saiu do shape original — não
 é mais um campo dentro de `csm`/`comercial`, é um número só no topo do
 payload. Um ingresso sem atribuição não tem vendedor, e por isso não tem
@@ -568,9 +579,10 @@ servido pelo FastAPI e fazer duas mudanças cirúrgicas no arquivo:
 - adicionar um recarregamento periódico do payload, a cada 5 minutos, sem
   recarregar a página inteira
 
-**Não criar mais o card "Por vendedor" no painel Comercial** — decisão
-revertida (seção 1). O painel Comercial fica exatamente como já está hoje:
-meta coletiva, sem quebra individual.
+**Atualizado:** o card "Por vendedor" no painel Comercial acabou sendo
+criado mesmo — a decisão de tirar foi revertida de novo (ver seção 1 e a
+atualização pós-Gate-9 do Gate 6). Reaproveita o mesmo componente
+`renderGerentes` do CSM.
 
 Se `semAtribuicao` for maior que zero, mostrar a contagem no rodapé. O que
 não aparece na tela ninguém corrige.

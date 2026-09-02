@@ -17,7 +17,7 @@ def test_api_painel_shape_e_regras():
     body = resp.json()
 
     assert set(body.keys()) == {
-        "fonte", "atualizadoEm", "semAtribuicao", "diasUteisRestantes", "csm", "comercial",
+        "fonte", "atualizadoEm", "semAtribuicao", "diasUteisRestantes", "topVendedores", "csm", "comercial",
     }
     assert isinstance(body["semAtribuicao"], int)
     assert body["semAtribuicao"] >= 0
@@ -26,16 +26,29 @@ def test_api_painel_shape_e_regras():
 
     campos_time = {
         "meta", "realizado", "semanaAtual", "metaSemana", "realizadoSemana",
-        "metaAcumulada", "realizadoAcumulado", "ritmoNecessario", "diferencaSemana", "statusSemana",
+        "metaAcumulada", "realizadoAcumulado", "ritmoNecessario", "diferencaSemana",
+        "statusSemana", "gerentes",
     }
-    assert set(body["csm"].keys()) == campos_time | {"gerentes"}
-    # Comercial não tem quebra individual -- decisão que reverteu o Gate 7 original.
+    # Comercial voltou a ter quebra individual (reversão de novo) -- metas
+    # diferentes por pessoa (Raul 10, os outros 30), por isso cada linha
+    # de "gerentes" carrega a própria meta.
+    assert set(body["csm"].keys()) == campos_time
     assert set(body["comercial"].keys()) == campos_time
-    assert "gerentes" not in body["comercial"]
 
     assert len(body["csm"]["gerentes"]) == 4
+    assert len(body["comercial"]["gerentes"]) == 4
+    metas_comercial = {g["nome"]: g["meta"] for g in body["comercial"]["gerentes"]}
+    assert metas_comercial == {"Raul": 10, "Clayton": 30, "Antonio": 30, "Adriano": 30}
     assert body["csm"]["meta"] == 300
     assert body["comercial"]["meta"] == 100
+
+    # Top 3 único, juntando os dois times, ordenado por realizado desc.
+    assert len(body["topVendedores"]) <= 3
+    realizados = [v["realizado"] for v in body["topVendedores"]]
+    assert realizados == sorted(realizados, reverse=True)
+    for v in body["topVendedores"]:
+        assert set(v.keys()) == {"nome", "time", "realizado"}
+        assert v["time"] in ("csm", "comercial")
 
     assert len(body["csm"]["metaAcumulada"]) == 7
     assert len(body["csm"]["realizadoAcumulado"]) == 7

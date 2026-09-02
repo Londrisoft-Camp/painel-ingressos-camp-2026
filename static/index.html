@@ -151,8 +151,15 @@
   /* BASE */
   .base { flex: 1; display: grid; gap: 15px; min-height: 0; }
   .base.csm { grid-template-columns: 1.5fr 1fr 1fr; }
-  .base.com { grid-template-columns: 1.6fr 1fr; }
-  .base.geral { grid-template-columns: 1fr 1fr; }
+  /* Geral: esse bloco não estica mais até preencher a tela -- sobra espaço
+     de propósito pras curvas e o top 3 logo abaixo. */
+  .base.geral { flex: 0 0 auto; grid-template-columns: 1fr 1fr; }
+
+  .curvas-geral {
+    flex: 1; display: grid; grid-template-columns: 1fr 1fr;
+    gap: 15px; margin-top: 15px; min-height: 0;
+  }
+  .top3-geral { flex: 0 0 auto; margin-top: 15px; }
 
   /* GRÁFICO DE CONVERSÃO */
   .chart { display: flex; align-items: flex-end; gap: 10px; flex: 1; min-height: 180px; padding-bottom: 2px; }
@@ -233,9 +240,25 @@
         <div id="ritmo-geral-csm"></div>
       </div>
       <div class="card">
-        <h3>Comercial <span>meta de time, sem quebra individual</span></h3>
+        <h3>Comercial <span>meta agregada, sem quebra por vendedor aqui</span></h3>
         <div id="ritmo-geral-comercial"></div>
       </div>
+    </div>
+
+    <div class="curvas-geral">
+      <div class="card" style="display:flex; flex-direction:column;">
+        <h3>Curva CSM <span>meta × realizado, S1 a S7</span></h3>
+        <div class="chart" id="chart-geral-csm"></div>
+      </div>
+      <div class="card" style="display:flex; flex-direction:column;">
+        <h3>Curva Comercial <span>meta × realizado, S1 a S7</span></h3>
+        <div class="chart" id="chart-geral-comercial"></div>
+      </div>
+    </div>
+
+    <div class="card top3-geral">
+      <h3>Top 3 vendedores <span>CSM + Comercial</span></h3>
+      <div id="top3-vendedores" style="display:flex; gap:16px;"></div>
     </div>
   </div>
 
@@ -293,7 +316,7 @@
       </div>
     </div>
 
-    <div class="base com">
+    <div class="base csm">
       <div class="card" style="display:flex; flex-direction:column;">
         <h3>Conversão acumulada <span>realizado × meta · resultado do time</span></h3>
         <div class="chart" id="chart-comercial"></div>
@@ -302,6 +325,11 @@
           <div class="i"><span class="s" style="background:var(--verde)"></span>Realizado acima da linha</div>
           <div class="i"><span class="s" style="background:var(--amarelo)"></span>Realizado abaixo da linha</div>
         </div>
+      </div>
+
+      <div class="card">
+        <h3>Por vendedor <span>meta varia por pessoa</span></h3>
+        <div id="gerentes-comercial"></div>
       </div>
 
       <div class="card">
@@ -334,6 +362,11 @@
     atualizadoEm: null,
     semAtribuicao: 0,
     diasUteisRestantes: 30,
+    topVendedores: [
+      { nome: "Gian", time: "csm", realizado: 34 },
+      { nome: "Pati", time: "csm", realizado: 31 },
+      { nome: "Gui", time: "csm", realizado: 29 }
+    ],
     csm: {
       meta: 300, realizado: 118, semanaAtual: 1, metaSemana: 105, realizadoSemana: 118,
       ritmoNecessario: 7, diferencaSemana: 13, statusSemana: "no_ritmo",
@@ -349,6 +382,12 @@
     comercial: {
       meta: 100, realizado: 53, semanaAtual: 1, metaSemana: 40, realizadoSemana: 53,
       ritmoNecessario: 2, diferencaSemana: 13, statusSemana: "no_ritmo",
+      gerentes: [
+        { nome: "Clayton", meta: 30, realizado: 18 },
+        { nome: "Adriano", meta: 30, realizado: 14 },
+        { nome: "Antonio", meta: 30, realizado: 16 },
+        { nome: "Raul", meta: 10, realizado: 5 }
+      ],
       metaAcumulada: [40, 55, 68, 79, 88, 95, 100],
       realizadoAcumulado: [53, null, null, null, null, null, null]
     }
@@ -475,6 +514,22 @@
     document.getElementById(elId).innerHTML = html;
   }
 
+  // ---- Top 3 vendedores, ranking único CSM + Comercial (tela Geral).
+  // Lado a lado, tipo pódio -- leitura de longe, sem lista vertical. ----
+  var NOME_TIME = { csm: "CSM", comercial: "Comercial" };
+
+  function renderTop3(elId, topVendedores) {
+    var html = topVendedores.map(function (v, i) {
+      return '<div style="flex:1; text-align:center;">' +
+        '<div style="font-size:12px; color:var(--texto-sec); font-weight:700;">#' + (i + 1) + '</div>' +
+        '<div style="font-size:19px; font-weight:800; margin-top:2px;">' + v.nome + '</div>' +
+        '<div style="font-size:10.5px; color:var(--texto-sec); text-transform:uppercase; letter-spacing:.05em;">' + NOME_TIME[v.time] + '</div>' +
+        '<div style="font-size:30px; font-weight:800; color:var(--ciano); margin-top:2px;">' + v.realizado + '</div>' +
+      '</div>';
+    }).join("");
+    document.getElementById(elId).innerHTML = html;
+  }
+
   // ---- Gráfico de conversão acumulada (S1 a S7) ----
   function renderChart(containerId, time) {
     var container = document.getElementById(containerId);
@@ -549,7 +604,12 @@
 
     renderHero("card-com-hero", "Comercial", dado.comercial, true);
     renderCadencia("card-com-cadencia", dado.comercial);
+    renderGerentes("gerentes-comercial", dado.comercial.gerentes);
     renderChart("chart-comercial", dado.comercial);
+
+    renderChart("chart-geral-csm", dado.csm);
+    renderChart("chart-geral-comercial", dado.comercial);
+    renderTop3("top3-vendedores", dado.topVendedores);
 
     renderFonte(dado);
   }
