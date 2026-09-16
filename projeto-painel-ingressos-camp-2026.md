@@ -476,6 +476,20 @@ nada sumiu entre as execuções). Não foi possível testar o caminho
 Luma de produção — a lógica foi validada por teste unitário
 (`test_sync_regras.py`), não por reembolso real.
 
+**Bug real, achado em produção (16/09):** um guest recusado (`declined`)
+depois de já ter ingresso capturado some do `event_tickets` no
+`guests/list` — sem nunca aparecer com `amount_refunded > 0`. O sync
+incremental, ao ver `event_tickets` vazio, pulava o guest inteiro e nunca
+revalidava o ticket antigo dele, deixando um ingresso inválido contando
+como válido por até 24h (só o `--full` de madrugada pegaria, via
+`marcar_sumidos_como_invalidos`, que só roda no evento inteiro em modo
+full). Corrigido com `marcar_tickets_sumidos_do_guest`, chamada pra todo
+guest processado nos dois modos — não só no `--full`. Achado ao investigar
+por que a Lucineia aparecia com mais vendas do que o esperado; 1 ticket
+afetado no total, corrigido direto no banco além do código. 2 testes novos
+(`test_ticket_some_do_guest_declinado_vira_invalido`,
+`test_ticket_que_continua_na_lista_nao_e_tocado`), 29 no total.
+
 `valido` originalmente também derivava de `is_captured` — regra revista
 depois da primeira rodada real: 5 dos 15 ingressos vieram de tipos de
 ingresso configurados como grátis de propósito na própria Luma (`type:

@@ -11,6 +11,12 @@ Dois modos:
         marca como valido = false qualquer ticket do evento que não
         apareceu nesta varredura
 
+Achado em produção (16/09): um guest recusado depois de já ter ingresso
+esvazia o `event_tickets` dele no guests/list, sem nunca aparecer como
+reembolsado. `marcar_tickets_sumidos_do_guest` invalida o ticket antigo
+desse guest específico em todo sync (não só no --full), pra não ficar até
+24h contando um ticket que a Luma já não reconhece mais.
+
 Nenhum valor monetário é gravado ou calculado. amount/amount_discount/
 amount_refunded só existem em memória, o tempo de decidir o booleano
 `valido` — o que sobrevive em disco é esse booleano e o raw jsonb (a
@@ -160,6 +166,29 @@ def upsert_ticket(cur: psycopg.Cursor, ticket: dict[str, Any], order: dict[str, 
     )
 
 
+def marcar_tickets_sumidos_do_guest(cur: psycopg.Cursor, guest_id: str, ids_atuais: set[str]) -> None:
+    """Quando um guest é recusado (ou entra na lista de espera) depois de
+    já ter ingresso, a Luma esvazia o event_tickets dele no guests/list —
+    o ticket some da lista sem nunca aparecer como reembolsado. Sem isso,
+    um ticket antigo desse guest ficava com valido=true pra sempre em modo
+    incremental, só corrigindo no --full do dia seguinte (até 24h de
+    atraso). Roda pra todo guest processado, nos dois modos — não espera
+    o --full."""
+    if ids_atuais:
+        cur.execute(
+            """
+            update luma_ticket set valido = false, sincronizado_em = now()
+            where guest_id = %s and valido = true and not (id = any(%s))
+            """,
+            (guest_id, list(ids_atuais)),
+        )
+    else:
+        cur.execute(
+            "update luma_ticket set valido = false, sincronizado_em = now() where guest_id = %s and valido = true",
+            (guest_id,),
+        )
+
+
 def marcar_sumidos_como_invalidos(cur: psycopg.Cursor, event_id: str, ids_vistos: set[str]) -> int:
     if ids_vistos:
         cur.execute(
@@ -223,6 +252,15 @@ def rodar(modo: str) -> dict[str, Any]:
                     conn.commit()
 
                     tickets_do_guest = guest.get("event_tickets") or []
+
+                    # Reconcilia por guest em todo sync, não só no --full:
+                    # um ticket que sumiu do event_tickets desse guest
+                    # específico (guest recusado, por exemplo) vira
+                    # inválido agora, não daqui a até 24h.
+                    with conn.cursor() as cur:
+                        marcar_tickets_sumidos_do_guest(cur, guest["id"], {t["id"] for t in tickets_do_guest})
+                    conn.commit()
+
                     if not tickets_do_guest:
                         continue
 
