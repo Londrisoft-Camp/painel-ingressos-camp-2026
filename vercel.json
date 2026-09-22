@@ -1,9 +1,0 @@
-{
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index" },
-    { "source": "/healthz", "destination": "/api/index" },
-    { "source": "/", "destination": "/static/index.html" },
-    { "source": "/assets/(.*)", "destination": "/static/assets/$1" },
-    { "source": "/data.json", "destination": "/static/data.json" }
-  ]
-}
