@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #080B12;
+    --bg: #000000;
     --bg-card: #151B27;
     --borda: #232B3A;
     --azul: #0040B3;
@@ -42,7 +42,7 @@
 
   .eb {
     font-size: 11.5px; font-weight: 600; letter-spacing: .14em;
-    text-transform: uppercase; color: var(--ciano); margin-bottom: 6px;
+    text-transform: uppercase; color: var(--verde); margin-bottom: 6px;
   }
   h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
   .sub { font-size: 13px; color: var(--texto-sec); margin-bottom: 24px; line-height: 1.5; }
@@ -57,15 +57,15 @@
     border-radius: 10px; padding: 13px 14px; color: var(--texto);
     font-family: inherit; font-size: 15px; outline: none;
   }
-  select:focus, input:focus { border-color: var(--azul-medio); }
+  select:focus, input:focus { border-color: var(--verde); }
 
   button {
     width: 100%; margin-top: 22px; padding: 14px; border: none; border-radius: 10px;
-    background: var(--azul); color: #fff; font-family: inherit; font-size: 15px;
+    background: var(--verde); color: var(--bg); font-family: inherit; font-size: 15px;
     font-weight: 700; cursor: pointer;
   }
   button:disabled { opacity: .6; cursor: default; }
-  button:not(:disabled):active { background: var(--azul-medio); }
+  button:not(:disabled):active { filter: brightness(0.85); }
 
   .resultados { margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
 
@@ -84,12 +84,15 @@
 
   .vazio { font-size: 13px; color: var(--texto-sec); margin-top: 22px; text-align: center; line-height: 1.5; }
   .erro { font-size: 13px; color: var(--vermelho); margin-top: 14px; }
+
+  .brand-logo { height: 26px; width: auto; display: block; margin-bottom: 18px; }
 </style>
 </head>
 <body>
 
 <div class="wrap">
-  <div class="eb">Londrisoft Camp 2026</div>
+  <img src="assets/logo-camp-horizontal.png" alt="Londrisoft Camp" class="brand-logo">
+  <div class="eb">2026 · Fase 1</div>
   <h1>Consulta de cadastro</h1>
   <div class="sub">Confere se o cadastro do seu cliente já contou no painel — sem precisar chamar a Mariana.</div>
 
