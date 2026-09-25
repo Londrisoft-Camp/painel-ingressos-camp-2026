@@ -23,7 +23,7 @@ def buscar(conn: psycopg.Connection, busca: str, vendedor_id: int) -> dict:
     with conn.cursor() as cur:
         cur.execute(
             """
-            select g.nome, g.email, va.valido, va.conta_no_painel, va.vendedor_id
+            select g.nome, g.email, t.ticket_type_nome, va.valido, va.conta_no_painel, va.vendedor_id
             from luma_guest g
             join luma_ticket t on t.guest_id = g.id
             join v_ingresso_atribuido va on va.ticket_id = t.id
@@ -36,7 +36,7 @@ def buscar(conn: psycopg.Connection, busca: str, vendedor_id: int) -> dict:
         linhas = cur.fetchall()
 
     resultados = []
-    for nome, email, valido, conta_no_painel, vendedor_id_ticket in linhas:
+    for nome, email, tipo_ingresso, valido, conta_no_painel, vendedor_id_ticket in linhas:
         eh_seu = vendedor_id_ticket == vendedor_id
         if not valido:
             status = "cancelado"
@@ -50,6 +50,7 @@ def buscar(conn: psycopg.Connection, busca: str, vendedor_id: int) -> dict:
             {
                 "nome": nome,
                 "email": email if eh_seu else None,
+                "tipoIngresso": tipo_ingresso,
                 "status": status,
             }
         )

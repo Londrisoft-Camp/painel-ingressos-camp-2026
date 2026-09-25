@@ -79,6 +79,11 @@
   .card.cancelado { border-left-color: var(--vermelho); }
 
   .card .nome { font-weight: 700; font-size: 14.5px; margin-bottom: 3px; }
+  .card .tipo {
+    display: inline-block; font-size: 10.5px; font-weight: 600; color: var(--texto-sec);
+    text-transform: uppercase; letter-spacing: .05em; border: 1px solid var(--borda);
+    border-radius: 5px; padding: 2px 7px; margin-bottom: 8px;
+  }
   .card .msg { font-size: 13px; color: var(--texto-sec); line-height: 1.45; }
   .card .msg b { color: var(--texto); }
 
@@ -173,6 +178,7 @@
         saida.innerHTML = '<div class="resultados">' + dado.resultados.map(function (r) {
           return '<div class="card ' + r.status + '">' +
             '<div class="nome">' + r.nome + '</div>' +
+            (r.tipoIngresso ? '<div class="tipo">' + r.tipoIngresso + '</div>' : '') +
             '<div class="msg">' + MSG[r.status](r) + '</div>' +
           '</div>';
         }).join("") + '</div>';
