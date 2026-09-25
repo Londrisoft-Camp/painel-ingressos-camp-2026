@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consulta de Cadastro — Londrisoft Camp 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080B12;
+    --bg-card: #151B27;
+    --borda: #232B3A;
+    --azul: #0040B3;
+    --azul-medio: #2E66BF;
+    --ciano: #00B3D2;
+    --verde: #68FF68;
+    --amarelo: #F5B833;
+    --vermelho: #FF5A5A;
+    --texto: #F4F6FB;
+    --texto-sec: #8B95AA;
+    --font-titulo: 'Stack Sans Notch', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Arial, sans-serif;
+    --font-corpo: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font-corpo);
+    background: var(--bg);
+    color: var(--texto);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    justify-content: center;
+    padding: 28px 18px 60px;
+  }
+
+  h1 { font-family: var(--font-titulo); }
+
+  .wrap { width: 100%; max-width: 480px; }
+
+  .eb {
+    font-size: 11.5px; font-weight: 600; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ciano); margin-bottom: 6px;
+  }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .sub { font-size: 13px; color: var(--texto-sec); margin-bottom: 24px; line-height: 1.5; }
+
+  label {
+    display: block; font-size: 12px; font-weight: 600; color: var(--texto-sec);
+    text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; margin-top: 18px;
+  }
+
+  select, input {
+    width: 100%; background: var(--bg-card); border: 1px solid var(--borda);
+    border-radius: 10px; padding: 13px 14px; color: var(--texto);
+    font-family: inherit; font-size: 15px; outline: none;
+  }
+  select:focus, input:focus { border-color: var(--azul-medio); }
+
+  button {
+    width: 100%; margin-top: 22px; padding: 14px; border: none; border-radius: 10px;
+    background: var(--azul); color: #fff; font-family: inherit; font-size: 15px;
+    font-weight: 700; cursor: pointer;
+  }
+  button:disabled { opacity: .6; cursor: default; }
+  button:not(:disabled):active { background: var(--azul-medio); }
+
+  .resultados { margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
+
+  .card {
+    background: var(--bg-card); border: 1px solid var(--borda);
+    border-left: 4px solid var(--borda); border-radius: 10px; padding: 14px 16px;
+  }
+  .card.seu { border-left-color: var(--verde); }
+  .card.outro { border-left-color: var(--amarelo); }
+  .card.sem_atribuicao { border-left-color: var(--amarelo); }
+  .card.cancelado { border-left-color: var(--vermelho); }
+
+  .card .nome { font-weight: 700; font-size: 14.5px; margin-bottom: 3px; }
+  .card .msg { font-size: 13px; color: var(--texto-sec); line-height: 1.45; }
+  .card .msg b { color: var(--texto); }
+
+  .vazio { font-size: 13px; color: var(--texto-sec); margin-top: 22px; text-align: center; line-height: 1.5; }
+  .erro { font-size: 13px; color: var(--vermelho); margin-top: 14px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="eb">Londrisoft Camp 2026</div>
+  <h1>Consulta de cadastro</h1>
+  <div class="sub">Confere se o cadastro do seu cliente já contou no painel — sem precisar chamar a Mariana.</div>
+
+  <label for="vendedor">Quem é você?</label>
+  <select id="vendedor">
+    <option value="">Carregando...</option>
+  </select>
+
+  <label for="busca">Nome ou e-mail do cliente</label>
+  <input id="busca" type="text" placeholder="ex: Maria Silva ou maria@..." autocomplete="off">
+
+  <button id="btn" disabled>Buscar</button>
+
+  <div id="saida"></div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var selVendedor = document.getElementById("vendedor");
+  var inputBusca = document.getElementById("busca");
+  var btn = document.getElementById("btn");
+  var saida = document.getElementById("saida");
+
+  var MSG = {
+    seu: function (r) {
+      return '<b>Contou pra você.</b>' + (r.email ? '<br>' + r.email : '');
+    },
+    outro: function () {
+      return 'Encontramos, mas já está atribuído a outra pessoa da equipe.';
+    },
+    sem_atribuicao: function () {
+      return 'Encontramos o cadastro, mas ainda <b>sem atribuição</b>. Avisa a Mariana pra corrigir.';
+    },
+    cancelado: function () {
+      return 'Encontramos, mas o ingresso foi <b>cancelado ou reembolsado</b>.';
+    }
+  };
+
+  function atualizarBotao() {
+    btn.disabled = !selVendedor.value || inputBusca.value.trim().length < 3;
+  }
+
+  function carregarVendedores() {
+    fetch("/api/vendedores")
+      .then(function (r) { return r.json(); })
+      .then(function (vendedores) {
+        selVendedor.innerHTML = '<option value="">Selecione...</option>' + vendedores.map(function (v) {
+          return '<option value="' + v.id + '">' + v.nome + ' (' + (v.time === 'csm' ? 'CSM' : 'Comercial') + ')</option>';
+        }).join("");
+        atualizarBotao();
+      })
+      .catch(function () {
+        selVendedor.innerHTML = '<option value="">Erro ao carregar — recarrega a página</option>';
+      });
+  }
+
+  function buscar() {
+    saida.innerHTML = '<div class="vazio">Buscando...</div>';
+    btn.disabled = true;
+
+    var params = new URLSearchParams({
+      busca: inputBusca.value.trim(),
+      vendedor_id: selVendedor.value
+    });
+
+    fetch("/api/consulta?" + params.toString())
+      .then(function (r) {
+        if (!r.ok) throw new Error("erro na busca");
+        return r.json();
+      })
+      .then(function (dado) {
+        if (!dado.encontrado || dado.resultados.length === 0) {
+          saida.innerHTML = '<div class="vazio">Não encontramos nenhum cadastro com esse nome ou e-mail.<br>Confere a grafia, ou tenta buscar pelo e-mail.</div>';
+          return;
+        }
+        saida.innerHTML = '<div class="resultados">' + dado.resultados.map(function (r) {
+          return '<div class="card ' + r.status + '">' +
+            '<div class="nome">' + r.nome + '</div>' +
+            '<div class="msg">' + MSG[r.status](r) + '</div>' +
+          '</div>';
+        }).join("") + '</div>';
+      })
+      .catch(function () {
+        saida.innerHTML = '<div class="erro">Deu erro na busca. Tenta de novo em alguns segundos.</div>';
+      })
+      .finally(function () {
+        atualizarBotao();
+      });
+  }
+
+  selVendedor.addEventListener("change", atualizarBotao);
+  inputBusca.addEventListener("input", atualizarBotao);
+  inputBusca.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !btn.disabled) buscar();
+  });
+  btn.addEventListener("click", buscar);
+
+  carregarVendedores();
+})();
+</script>
+
+</body>
+</html>

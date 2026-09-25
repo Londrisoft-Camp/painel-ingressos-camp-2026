@@ -1,8 +1,9 @@
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.staticfiles import StaticFiles
 
+from app.consulta import buscar, listar_vendedores
 from app.db import conectar
 from app.painel import montar_payload
 
@@ -18,6 +19,18 @@ def healthz():
 def api_painel():
     with conectar() as conn:
         return montar_payload(conn)
+
+
+@app.get("/api/vendedores")
+def api_vendedores():
+    with conectar() as conn:
+        return listar_vendedores(conn)
+
+
+@app.get("/api/consulta")
+def api_consulta(busca: str = Query(min_length=3), vendedor_id: int = Query()):
+    with conectar() as conn:
+        return buscar(conn, busca, vendedor_id)
 
 
 # Serve a TV estática (index.html na raiz, assets/ etc). Registrado por

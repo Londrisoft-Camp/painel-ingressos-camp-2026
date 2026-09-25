@@ -105,6 +105,26 @@ def test_utm_source_capitalizado_bate_depois_de_normalizar(conn):
         assert utm_bruto == "Lucineia"  # o bruto não normaliza, só a comparação
 
 
+def test_utm_source_com_sufixo_bate_por_prefixo(conn):
+    """Achado real em produção (18/09): a Lucineia divulgou link com hora
+    grudada no utm_source ("lucineia15:56"), junto de um cupom não mapeado
+    ("CSM~PREMIUM"). Migration 008: o match deixa de exigir igualdade exata,
+    passa a aceitar utm_source do guest começando pelo utm_source do
+    vendedor -- e como esse tem prioridade sobre cupom, resolve pra ela."""
+    with conn.cursor() as cur:
+        _inserir(
+            cur,
+            ticket_id="teste-tkt-11",
+            guest_id="teste-gst-11",
+            utm_source="lucineia15:56",
+            cupom_codigo="CSM~PREMIUM",
+        )
+        vendedor_id, time, valido, atribuido_por, conta, utm_bruto = _resultado(cur, "teste-tkt-11")
+        assert atribuido_por == "utm_source"
+        assert conta is True
+        assert vendedor_id == _vendedor_id(cur, "lucineia")
+
+
 def test_utm_source_de_canal_nao_vendedor_cai_em_sem_atribuicao(conn):
     with conn.cursor() as cur:
         _inserir(cur, ticket_id="teste-tkt-3", guest_id="teste-gst-3", utm_source="Instagram")
