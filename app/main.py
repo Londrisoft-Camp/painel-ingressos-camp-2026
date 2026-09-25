@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI, Query
 from fastapi.staticfiles import StaticFiles
 
-from app.consulta import buscar, listar_vendedores
+from app.consulta import buscar, listar_vendedores, ultimos
 from app.db import conectar
 from app.painel import montar_payload
 
@@ -31,6 +31,12 @@ def api_vendedores():
 def api_consulta(busca: str = Query(min_length=3), vendedor_id: int = Query()):
     with conectar() as conn:
         return buscar(conn, busca, vendedor_id)
+
+
+@app.get("/api/consulta/recentes")
+def api_consulta_recentes(vendedor_id: int = Query()):
+    with conectar() as conn:
+        return ultimos(conn, vendedor_id)
 
 
 # Serve a TV estática (index.html na raiz, assets/ etc). Registrado por

@@ -9,7 +9,11 @@ está com outra pessoa da equipe ou sem atribuição.
 
 from __future__ import annotations
 
+from zoneinfo import ZoneInfo
+
 import psycopg
+
+FUSO = ZoneInfo("America/Sao_Paulo")
 
 
 def listar_vendedores(conn: psycopg.Connection) -> list[dict]:
@@ -54,5 +58,35 @@ def buscar(conn: psycopg.Connection, busca: str, vendedor_id: int) -> dict:
                 "status": status,
             }
         )
+
+    return {"encontrado": bool(resultados), "resultados": resultados}
+
+
+def ultimos(conn: psycopg.Connection, vendedor_id: int, limite: int = 5) -> dict:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            select g.nome, g.email, t.ticket_type_nome, t.criado_em
+            from luma_guest g
+            join luma_ticket t on t.guest_id = g.id
+            join v_ingresso_atribuido va on va.ticket_id = t.id
+            where va.vendedor_id = %s and va.conta_no_painel
+            order by t.criado_em desc
+            limit %s
+            """,
+            (vendedor_id, limite),
+        )
+        linhas = cur.fetchall()
+
+    resultados = [
+        {
+            "nome": nome,
+            "email": email,
+            "tipoIngresso": tipo_ingresso,
+            "criadoEm": criado_em.astimezone(FUSO).strftime("%d/%m/%Y %H:%M") if criado_em else None,
+            "status": "seu",
+        }
+        for nome, email, tipo_ingresso, criado_em in linhas
+    ]
 
     return {"encontrado": bool(resultados), "resultados": resultados}

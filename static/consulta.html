@@ -67,6 +67,12 @@
   button:disabled { cursor: default; }
   button:not(:disabled):active { filter: brightness(0.85); }
 
+  button.btn-secundario {
+    margin-top: 12px; background: transparent; border: 1px solid var(--verde); color: var(--verde);
+  }
+  button.btn-secundario:not(:disabled):active { background: rgba(104,255,104,.12); filter: none; }
+  button[hidden] { display: none; }
+
   .resultados { margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
 
   .card {
@@ -106,6 +112,8 @@
     <option value="">Carregando...</option>
   </select>
 
+  <button id="btn-recentes" class="btn-secundario" disabled hidden>Ver meus últimos 5 cadastros</button>
+
   <label for="busca">Nome ou e-mail do cliente</label>
   <input id="busca" type="text" placeholder="ex: Maria Silva ou maria@..." autocomplete="off">
 
@@ -121,11 +129,14 @@
   var selVendedor = document.getElementById("vendedor");
   var inputBusca = document.getElementById("busca");
   var btn = document.getElementById("btn");
+  var btnRecentes = document.getElementById("btn-recentes");
   var saida = document.getElementById("saida");
 
   var MSG = {
     seu: function (r) {
-      return '<b>Confirmado e atribuído a você.</b>' + (r.email ? '<br>' + r.email : '');
+      return '<b>Confirmado e atribuído a você.</b>' +
+        (r.email ? '<br>' + r.email : '') +
+        (r.criadoEm ? '<br>Cadastrado em ' + r.criadoEm : '');
     },
     outro: function () {
       return 'Encontramos, mas já está atribuído a outra pessoa da equipe.';
@@ -140,6 +151,22 @@
 
   function atualizarBotao() {
     btn.disabled = !selVendedor.value || inputBusca.value.trim().length < 3;
+    btnRecentes.hidden = !selVendedor.value;
+    btnRecentes.disabled = !selVendedor.value;
+  }
+
+  function renderResultados(dado, msgVazio) {
+    if (!dado.encontrado || dado.resultados.length === 0) {
+      saida.innerHTML = '<div class="vazio">' + msgVazio + '</div>';
+      return;
+    }
+    saida.innerHTML = '<div class="resultados">' + dado.resultados.map(function (r) {
+      return '<div class="card ' + r.status + '">' +
+        '<div class="nome">' + r.nome + '</div>' +
+        (r.tipoIngresso ? '<div class="tipo">' + r.tipoIngresso + '</div>' : '') +
+        '<div class="msg">' + MSG[r.status](r) + '</div>' +
+      '</div>';
+    }).join("") + '</div>';
   }
 
   function carregarVendedores() {
@@ -171,17 +198,29 @@
         return r.json();
       })
       .then(function (dado) {
-        if (!dado.encontrado || dado.resultados.length === 0) {
-          saida.innerHTML = '<div class="vazio">Não encontramos nenhum cadastro com esse nome ou e-mail.<br>Confira a grafia, ou tenta buscar pelo e-mail.</div>';
-          return;
-        }
-        saida.innerHTML = '<div class="resultados">' + dado.resultados.map(function (r) {
-          return '<div class="card ' + r.status + '">' +
-            '<div class="nome">' + r.nome + '</div>' +
-            (r.tipoIngresso ? '<div class="tipo">' + r.tipoIngresso + '</div>' : '') +
-            '<div class="msg">' + MSG[r.status](r) + '</div>' +
-          '</div>';
-        }).join("") + '</div>';
+        renderResultados(dado, "Não encontramos nenhum cadastro com esse nome ou e-mail.<br>Confira a grafia, ou tenta buscar pelo e-mail.");
+      })
+      .catch(function () {
+        saida.innerHTML = '<div class="erro">Deu erro na busca. Tenta de novo em alguns segundos.</div>';
+      })
+      .finally(function () {
+        atualizarBotao();
+      });
+  }
+
+  function buscarRecentes() {
+    saida.innerHTML = '<div class="vazio">Buscando...</div>';
+    btnRecentes.disabled = true;
+
+    var params = new URLSearchParams({ vendedor_id: selVendedor.value });
+
+    fetch("/api/consulta/recentes?" + params.toString())
+      .then(function (r) {
+        if (!r.ok) throw new Error("erro na busca");
+        return r.json();
+      })
+      .then(function (dado) {
+        renderResultados(dado, "Você ainda não tem nenhum cadastro atribuído.");
       })
       .catch(function () {
         saida.innerHTML = '<div class="erro">Deu erro na busca. Tenta de novo em alguns segundos.</div>';
@@ -197,6 +236,7 @@
     if (e.key === "Enter" && !btn.disabled) buscar();
   });
   btn.addEventListener("click", buscar);
+  btnRecentes.addEventListener("click", buscarRecentes);
 
   carregarVendedores();
 })();
