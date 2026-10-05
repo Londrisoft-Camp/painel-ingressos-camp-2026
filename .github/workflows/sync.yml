@@ -2,8 +2,10 @@ name: Sync Luma -> Neon
 
 on:
   schedule:
-    # Incremental a cada 15 min -- só guest novo ou com raw mudado.
-    - cron: "*/15 * * * *"
+    # Incremental a cada 15 min -- só guest novo ou com raw mudado. Minutos
+    # fora do pico (não :00/:15/:30/:45) pra reduzir atraso na fila de
+    # agendamento do GitHub.
+    - cron: "7,22,37,52 * * * *"
     # Full 1x por dia, de madrugada (03:00 America/Sao_Paulo = 06:00 UTC,
     # sem horário de verão no Brasil desde 2019) -- pega reembolso, que só
     # aparece revarrendo tudo.
