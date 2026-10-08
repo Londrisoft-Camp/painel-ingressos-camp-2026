@@ -187,6 +187,14 @@
   .g-tr { flex: 1; height: 9px; background: #1A2130; border-radius: 5px; overflow: hidden; }
   .g-tr i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, #7CFF7C, var(--verde)); }
   .g-vl { width: 54px; text-align: right; font-size: 12.5px; font-weight: 700; flex-shrink: 0; }
+  .g-mid { flex: 1; min-width: 0; }
+  .g-cap {
+    margin-top: 5px; font-size: 9.5px; font-weight: 800; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--verde); white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .g-row.batida .g-vl { color: var(--verde); }
+  .g-row.batida .g-tr i { box-shadow: 0 0 10px rgba(104,255,104,.55); }
 
   /* RITMO */
   .ritmo-n { font-size: 32px; font-weight: 800; line-height: 1; margin: 6px 0 8px; color: var(--verde); }
@@ -502,13 +510,19 @@
         (diffTexto ? ' · ' + diffTexto : '') + '</div>';
   }
 
-  // ---- Progresso individual por gerente (só números, sem status individual) ----
+  // ---- Progresso individual por gerente. Passou ou chegou na meta: a contagem
+  // continua subindo (ex: 80/75) e a linha ganha a legenda "Meta batida". ----
   function renderGerentes(elId, gerentes) {
     var html = gerentes.map(function (g) {
       var pct = Math.min((g.realizado / g.meta) * 100, 100);
-      return '<div class="g-row"><div class="g-av">' + g.nome.charAt(0) + '</div>' +
+      var batida = g.meta > 0 && g.realizado >= g.meta;
+      var acima = g.realizado - g.meta;
+      var legenda = batida
+        ? '<div class="g-cap">Meta batida' + (acima > 0 ? ' · +' + acima : '') + '</div>'
+        : '';
+      return '<div class="g-row' + (batida ? ' batida' : '') + '"><div class="g-av">' + g.nome.charAt(0) + '</div>' +
         '<div class="g-nm">' + g.nome + '</div>' +
-        '<div class="g-tr"><i style="width:' + pct + '%"></i></div>' +
+        '<div class="g-mid"><div class="g-tr"><i style="width:' + pct + '%"></i></div>' + legenda + '</div>' +
         '<div class="g-vl">' + g.realizado + '/' + g.meta + '</div></div>';
     }).join("");
     document.getElementById(elId).innerHTML = html;
